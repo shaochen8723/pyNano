@@ -25,22 +25,22 @@ def getLoverlap(Loverlap, dL, n):
   '''
   return Loverlap-dL/n/2
   
-def getForce(sigma, tau, N, Lx, Ly, Lsheet, delL):
+def getForce(sigma, tau, N, Lx, Ly, Lsheet, delL, n):
   '''
   compute force needed to pull graphene layer given
   sigma, thickness of graphene layer N, interfacial shear
   strength tau, Lx, Ly assuming pulling in y direction
   '''
   Lc = sigma/tau*N/2*dg
-  nc = math.floor((Lc+delL)/Lsheet)
+  nc = math.floor((Lc+delL)/(Lsheet+delL/n)) # critical number of sheets
   #print Lc, nc
-  if Ly >= Lc and Lc > nc*Lsheet-delL:
+  if Ly >= Lc and Lc > nc*(Lsheet+delL/n)-delL:
     # yielding in graphene layer
-    return sigma*Lx*N*dg, Ly-delL
-  elif Ly >= Lc and Lc <= nc*Lsheet-delL:
-    return 2*tau*Lx*(nc*Lsheet-delL), nc*Lsheet-delL
+    return sigma*Lx*N*dg, Ly-delL, True
+  elif Ly >= Lc and Lc <= nc*(Lsheet+delL/n)-delL:
+    return 2*tau*Lx*(nc*(Lsheet+delL/n)-delL), nc*(Lsheet+delL/n)-delL, False
   else:
-    return 2*tau*Lx*(Ly-delL), Ly-delL
+    return 2*tau*Lx*(Ly-delL), Ly-delL, False
 
 def getStrainEnergy(dL, tau, N, Lx, Ly, n):
   '''
@@ -55,14 +55,14 @@ def getStrainEnergy(dL, tau, N, Lx, Ly, n):
   a = b = []
   while Lgp > 0:
     sigma = getMLGStrength(Loverlap)
-    force, Lgp = getForce(sigma, tau, N, Lx, Ly, Lsheet, delL)
-    #print force, Lgp
-    #raw_input('------------')
+    force, Lgp, flag = getForce(sigma, tau, N, Lx, Ly, Lsheet, delL, n)
+    #print force, Lgp, flag
+    #if not flag: raw_input('------------')
     res += force*dL
     
     #update values
     delL += dL
-    Loverlap -= dL/n/2
+    if flag: Loverlap -= dL/n/2
     a.append(force)
     b.append(Lgp)
   return res, a, b

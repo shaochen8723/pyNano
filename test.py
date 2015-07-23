@@ -26,8 +26,9 @@ mpl.rcParams['savefig.pad_inches'] = 0.2
 mpl.rcParams['legend.numpoints'] = 1
 
 def main():
-  n = 2 # number of sheets per layer
-  Ly = 50.96 #nm system size in y
+  n = 6 # number of sheets per layer
+  Lsheet = 25 #nm
+  Ly = Lsheet*n #nm system size in y
   Lx = 10 #nm
   Lz = 20 #nm
 
@@ -35,15 +36,15 @@ def main():
   tau = [0.033+x*0.267 for x in epsi_gp]  #GPa shear strength
   
   se = []
-  N = range(2,20)
+  N = range(2,200)
   
   for i in N:
-    res, a, b = nano.getStrainEnergy(0.001, tau[0], i, Lx, Ly, n)
+    res, a, b = nano.getStrainEnergy(0.1, tau[0], i, Lx, Ly, n)
     se.append(res)
   
-  
+  s = [x/y for (x,y) in zip(se,N)]
   plt.figure(num=1,figsize = (8,6))
-  plt.plot(N,se,label='UTS = '+str(10))
+  plt.plot(N,s,label='UTS = '+str(10))
   
   plt.figure(num = 1, figsize = (8, 6))
   plt.xlabel('L (nm)')
